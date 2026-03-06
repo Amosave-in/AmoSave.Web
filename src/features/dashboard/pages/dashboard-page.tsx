@@ -50,71 +50,24 @@ const ADVANCED_TOOLS: AdvancedTool[] = [
   { emoji: '📅', label: 'Calendar', to: '/app/analyse/calendar' },
 ];
 
-const cardBase: React.CSSProperties = {
-  background: 'var(--bg-card)',
-  border: '1px solid var(--border)',
-  borderRadius: 10,
-  padding: '20px 22px',
-  cursor: 'pointer',
-  textDecoration: 'none',
-  color: 'var(--text)',
-  display: 'flex',
-  flexDirection: 'column',
-  gap: 6,
-  transition: 'border-color 0.18s, box-shadow 0.18s',
-};
-
 function FeatureCardItem({ card }: { card: FeatureCard }) {
   return (
-    <NavLink
-      to={card.to}
-      style={({ isActive }) => ({
-        ...cardBase,
-        borderColor: isActive ? 'var(--accent)' : 'var(--border)',
-      })}
-      onMouseEnter={e => {
-        (e.currentTarget as HTMLElement).style.borderColor = 'var(--accent)';
-        (e.currentTarget as HTMLElement).style.boxShadow = '0 4px 16px rgba(0,0,0,0.18)';
-      }}
-      onMouseLeave={e => {
-        (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)';
-        (e.currentTarget as HTMLElement).style.boxShadow = 'none';
-      }}
-    >
-      <div style={{ fontSize: 26 }}>{card.emoji}</div>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <span style={{ fontWeight: 700, fontSize: 15 }}>{card.title}</span>
-        <span style={{ color: 'var(--accent)', fontSize: 18, lineHeight: 1 }}>›</span>
+    <NavLink to={card.to} className="dash-feature-card">
+      <div className="dash-feature-card__emoji">{card.emoji}</div>
+      <div className="dash-feature-card__row">
+        <span className="dash-feature-card__title">{card.title}</span>
+        <span className="dash-feature-card__arrow">›</span>
       </div>
-      <div style={{ color: 'var(--text-muted)', fontSize: 13, lineHeight: 1.4 }}>{card.description}</div>
+      <div className="dash-feature-card__desc">{card.description}</div>
     </NavLink>
   );
 }
 
 function AdvancedToolItem({ tool }: { tool: AdvancedTool }) {
   return (
-    <NavLink
-      to={tool.to}
-      style={({ isActive }) => ({
-        background: isActive ? 'var(--bg-elevated)' : 'var(--bg-card)',
-        border: '1px solid var(--border)',
-        borderRadius: 8,
-        padding: '14px 18px',
-        textDecoration: 'none',
-        color: 'var(--text)',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: 6,
-        minWidth: 90,
-        flex: 1,
-        transition: 'border-color 0.18s',
-      })}
-      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--accent)'; }}
-      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'; }}
-    >
-      <span style={{ fontSize: 22 }}>{tool.emoji}</span>
-      <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{tool.label}</span>
+    <NavLink to={tool.to} className="dash-tool-item">
+      <span className="dash-tool-item__emoji">{tool.emoji}</span>
+      <span className="dash-tool-item__label">{tool.label}</span>
     </NavLink>
   );
 }
@@ -123,56 +76,33 @@ export function DashboardPage() {
   const query = useQuery({ queryKey: queryKeys.dashboardSummary, queryFn: dashboardService.getDashboardSummary });
   const data = query.data as Dictionary | undefined;
 
-  const dayPnl   = Number(data?.dayPnl   ?? data?.todayPnl   ?? 0);
-  const netPnl   = Number(data?.netPnl   ?? data?.totalPnl   ?? 0);
-  const margin   = Number(data?.marginUsed ?? data?.usedMargin ?? 0);
+  const dayPnl     = Number(data?.dayPnl   ?? data?.todayPnl   ?? 0);
+  const netPnl     = Number(data?.netPnl   ?? data?.totalPnl   ?? 0);
+  const margin     = Number(data?.marginUsed ?? data?.usedMargin ?? 0);
   const openOrders = Number(data?.openOrders ?? data?.pendingOrders ?? 0);
 
   const pnlColor = (v: number) => (v > 0 ? 'green' : v < 0 ? 'red' : 'default') as 'green' | 'red' | 'default';
 
   return (
-    <div style={{ maxWidth: 1100, margin: '0 auto', padding: '24px 16px', display: 'flex', flexDirection: 'column', gap: 32 }}>
+    <div className="dashboard-page">
 
       {/* Welcome header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
+      <div className="dashboard-page__hero">
         <div>
-          <h1 style={{ margin: 0, fontSize: 22, fontWeight: 700 }}>{greeting()} 👋</h1>
-          <div style={{ color: 'var(--text-muted)', fontSize: 13, marginTop: 4 }}>{todayLabel()}</div>
+          <h1 className="dashboard-page__greeting">{greeting()} 👋</h1>
+          <div className="dashboard-page__date">{todayLabel()}</div>
         </div>
-        <NavLink
-          to="/app/trade/easy-options"
-          style={{
-            background: 'var(--accent)',
-            color: '#fff',
-            border: 'none',
-            borderRadius: 8,
-            padding: '10px 20px',
-            fontWeight: 700,
-            fontSize: 14,
-            textDecoration: 'none',
-            cursor: 'pointer',
-          }}
-        >
+        <NavLink to="/app/trade/easy-options" className="btn btn-primary">
           Option Chain →
         </NavLink>
       </div>
 
-      {/* Feature cards 2×3 grid */}
+      {/* Portfolio summary stats */}
       <section>
-        <h2 style={{ margin: '0 0 14px', fontSize: 15, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
-          Quick Access
-        </h2>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 14 }}>
-          {FEATURE_CARDS.map(card => <FeatureCardItem key={card.to} card={card} />)}
+        <div className="section-header">
+          <h2 className="section-title">Portfolio Summary</h2>
         </div>
-      </section>
-
-      {/* Portfolio Summary */}
-      <section>
-        <h2 style={{ margin: '0 0 14px', fontSize: 15, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
-          Portfolio Summary
-        </h2>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14 }}>
+        <div className="dashboard-page__stats">
           <StatCard
             title="Day P&L"
             value={query.isLoading ? '—' : fmt(dayPnl)}
@@ -198,12 +128,22 @@ export function DashboardPage() {
         </div>
       </section>
 
+      {/* Feature cards */}
+      <section>
+        <div className="section-header">
+          <h2 className="section-title">Quick Access</h2>
+        </div>
+        <div className="dashboard-page__features">
+          {FEATURE_CARDS.map(card => <FeatureCardItem key={card.to} card={card} />)}
+        </div>
+      </section>
+
       {/* Advanced Tools */}
       <section>
-        <h2 style={{ margin: '0 0 14px', fontSize: 15, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
-          Advanced Tools
-        </h2>
-        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+        <div className="section-header">
+          <h2 className="section-title">Advanced Tools</h2>
+        </div>
+        <div className="dashboard-page__tools">
           {ADVANCED_TOOLS.map(tool => <AdvancedToolItem key={tool.to} tool={tool} />)}
         </div>
       </section>

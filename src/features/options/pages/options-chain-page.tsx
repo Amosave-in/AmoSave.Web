@@ -1,10 +1,11 @@
-import { useState, useEffect, CSSProperties } from 'react';
+import { useState, useEffect, useMemo, CSSProperties } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { optionsService } from '@/services/api/options.service';
+import { marketService } from '@/services/api/market.service';
 import { mapHttpError } from '@/services/http/error-mapper';
+import { extractOptionUnderlyings } from '@/shared/lib/options-underlyings';
 import type { Dictionary } from '@/shared/types/api';
 
-const UNDERLYINGS = ['BANKNIFTY', 'NIFTY', 'FINNIFTY', 'MIDCPNIFTY', 'SENSEX', 'BANKEX'];
 type ViewMode = 'ltp' | 'greeks' | 'all';
 
 // ── Format helpers ────────────────────────────────────────────────────────────
@@ -61,19 +62,40 @@ function RefreshIcon({ spinning }: { spinning: boolean }) {
 
 // ── Main component ────────────────────────────────────────────────────────────
 export function OptionsChainPage() {
-  const [underlying, setUnderlying] = useState('BANKNIFTY');
+  const instrumentsQuery = useQuery({
+    queryKey: ['market', 'instruments', 'option-underlyings'],
+    queryFn: marketService.getInstruments,
+  });
+
+  const underlyings = useMemo(
+    () => extractOptionUnderlyings((instrumentsQuery.data ?? []) as Dictionary[]),
+    [instrumentsQuery.data],
+  );
+
+  const [underlying, setUnderlying] = useState('');
   const [selectedExpiry, setSelectedExpiry] = useState('');
   const [viewMode, setViewMode] = useState<ViewMode>('ltp');
   const [hoveredRow, setHoveredRow] = useState<number | null>(null);
 
+  useEffect(() => {
+    if (!underlyings.length) {
+      return;
+    }
+
+    if (!underlyings.includes(underlying)) {
+      setUnderlying(underlyings[0]);
+    }
+  }, [underlyings, underlying]);
+
   const expiriesQuery = useQuery({
     queryKey: ['options', 'expiries', underlying],
     queryFn: () => optionsService.getExpiries(underlying),
+    enabled: !!underlying,
   });
 
   const chainMutation = useMutation({
     mutationFn: (expiry: string) =>
-      optionsService.getOptionChain({ userId: '', underlying, expiry }),
+      optionsService.getOptionChain({ underlying, expiry }),
   });
 
   useEffect(() => {
@@ -288,7 +310,7 @@ export function OptionsChainPage() {
 
           {/* Underlying pills */}
           <div style={{ display: 'flex', gap: '4px' }}>
-            {UNDERLYINGS.map(u => (
+            {underlyings.map(u => (
               <button key={u} onClick={() => handleUnderlyingChange(u)} style={{
                 padding: '5px 12px', borderRadius: 20, border: '1px solid',
                 borderColor: underlying === u ? 'var(--accent)' : 'var(--border)',
@@ -327,6 +349,10 @@ export function OptionsChainPage() {
           {/* Error */}
           {chainMutation.isError && (
             <span style={{ color: 'var(--danger)', fontSize: 12 }}>{mapHttpError(chainMutation.error)}</span>
+          )}
+
+          {!underlyings.length && !instrumentsQuery.isLoading && !chainMutation.isError && (
+            <span style={{ color: 'var(--danger)', fontSize: 12 }}>No option underlyings available from API.</span>
           )}
 
           {/* Stats (right side) */}

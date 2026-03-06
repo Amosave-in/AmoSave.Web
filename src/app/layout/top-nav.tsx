@@ -167,6 +167,12 @@ export function TopNav() {
         >
           Orders
         </NavLink>
+        <NavLink
+          className={({ isActive }) => 'top-nav__link' + (isActive ? ' active' : '')}
+          to="/app/users/kite-logins"
+        >
+          Users
+        </NavLink>
       </div>
 
       {/* Right side */}

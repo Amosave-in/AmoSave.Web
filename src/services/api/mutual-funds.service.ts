@@ -1,18 +1,18 @@
-import { apiClient } from '@/services/http/axios-client';
+import { apiClient, toSafeArray } from '@/services/http/axios-client';
 import { ApiEnvelope, Dictionary } from '@/shared/types/api';
 
 export const mutualFundsService = {
   async getInstruments() {
     const response = await apiClient.get<ApiEnvelope<Dictionary[]>>('/mf/instruments');
-    return response.data.data;
+    return toSafeArray<Dictionary>(response.data.data);
   },
   async getHoldings() {
     const response = await apiClient.get<ApiEnvelope<Dictionary[]>>('/mf/holdings');
-    return response.data.data;
+    return toSafeArray<Dictionary>(response.data.data);
   },
   async getOrders() {
     const response = await apiClient.get<ApiEnvelope<Dictionary[]>>('/mf/orders');
-    return response.data.data;
+    return toSafeArray<Dictionary>(response.data.data);
   },
   async getOrder(orderId: string) {
     const response = await apiClient.get<ApiEnvelope<Dictionary>>(`/mf/orders/${orderId}`);
@@ -28,7 +28,7 @@ export const mutualFundsService = {
   },
   async getSips() {
     const response = await apiClient.get<ApiEnvelope<Dictionary[]>>('/mf/sips');
-    return response.data.data;
+    return toSafeArray<Dictionary>(response.data.data);
   },
   async getSip(sipId: string) {
     const response = await apiClient.get<ApiEnvelope<Dictionary>>(`/mf/sips/${sipId}`);

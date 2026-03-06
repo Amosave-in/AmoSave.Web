@@ -9,14 +9,37 @@ import {
   setStoredAuthAccessKey,
   setStoredAuthUserName,
 } from '@/services/api/auth.service';
+import { apiClient } from '@/services/http/axios-client';
+import { KiteConnectModal } from '@/features/auth/components/kite-connect-modal';
 
 export function Header() {
   const navigate = useNavigate();
   const profileName = getStoredAuthUserName() ?? 'Guest';
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [kiteConnected, setKiteConnectedState] = useState(getKiteConnected);
-  const [kiteLoading, setKiteLoading] = useState(false);
+  const [showKiteModal, setShowKiteModal]       = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
+
+  // Verify actual Kite connectivity from server on mount
+  useEffect(() => {
+    const accessKey = getStoredAuthAccessKey();
+    if (!accessKey || accessKey === 'auto-bootstrap') return;
+    apiClient
+      .get<{ data: { isKiteConnected?: boolean } }>('/auth/kite-status')
+      .then((res) => {
+        const connected = res.data?.data?.isKiteConnected === true;
+        setKiteConnectedState(connected);
+        if (connected) {
+          setKiteConnected(true);
+        } else {
+          try { window.localStorage.removeItem('amo.kiteConnected'); } catch { /* no-op */ }
+        }
+      })
+      .catch(() => {
+        // Silently ignore — server may be unreachable
+      });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Sync Kite status when storage changes (e.g., after callback redirect)
   useEffect(() => {
@@ -46,19 +69,10 @@ export function Header() {
     navigate('/');
   };
 
-  const handleConnectKite = async () => {
+  const handleConnectKite = () => {
     const accessKey = getStoredAuthAccessKey();
-    if (!accessKey) {
-      navigate('/');
-      return;
-    }
-    setKiteLoading(true);
-    try {
-      const url = await authService.getKiteLoginUrl();
-      window.location.href = url;
-    } catch {
-      setKiteLoading(false);
-    }
+    if (!accessKey) { navigate('/'); return; }
+    setShowKiteModal(true);
   };
 
   const handleDisconnectKite = async () => {
@@ -72,12 +86,13 @@ export function Header() {
   };
 
   return (
-    <header className="app-header">
-      <div className="app-header__brand">AmoSave</div>
-      <div className="app-header__status" aria-label="Market status">
-        <span className="status-dot" />
-        Market Open · NIFTY 50
-      </div>
+    <>
+      <header className="app-header">
+        <div className="app-header__brand">AmoSave</div>
+        <div className="app-header__status" aria-label="Market status">
+          <span className="status-dot" />
+          Market Open · NIFTY 50
+        </div>
 
       {/* Kite connection status */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 'auto', marginRight: 12 }}>
@@ -92,13 +107,12 @@ export function Header() {
         ) : (
           <button
             className="btn"
-            style={{ fontSize: 12, padding: '2px 10px', opacity: kiteLoading ? 0.6 : 1 }}
+            style={{ fontSize: 12, padding: '2px 10px' }}
             type="button"
             onClick={handleConnectKite}
-            disabled={kiteLoading}
             title="Connect Zerodha Kite for live trading"
           >
-            {kiteLoading ? 'Redirecting…' : 'Connect Kite'}
+            Connect Kite
           </button>
         )}
       </div>
@@ -133,5 +147,17 @@ export function Header() {
         ) : null}
       </div>
     </header>
+
+    {showKiteModal && (
+      <KiteConnectModal
+        onConnected={() => {
+          setKiteConnectedState(true);
+          setKiteConnected(true);
+          setShowKiteModal(false);
+        }}
+        onClose={() => setShowKiteModal(false)}
+      />
+    )}
+    </>
   );
 }

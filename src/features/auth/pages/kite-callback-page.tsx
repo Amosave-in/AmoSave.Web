@@ -1,6 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { authService, setKiteConnected, setKiteUserId } from '@/services/api/auth.service';
+import {
+  authService,
+  setKiteConnected,
+  setKiteUserId,
+} from '@/services/api/auth.service';
 
 type Status = 'connecting' | 'success' | 'error';
 
@@ -43,12 +47,19 @@ export function KiteCallbackPage() {
           return;
         }
 
-        const userId = typeof envelope.data?.userId === 'string' ? envelope.data.userId : null;
+        // Store Kite metadata ONLY — do NOT overwrite the UserAuth JWT
+        const kiteUserId = envelope.data?.kiteUserId ?? null;
         setKiteConnected(true);
-        setKiteUserId(userId);
+        setKiteUserId(kiteUserId);
         setStatus('success');
 
-        setTimeout(() => navigate('/app/watchlist'), 1500);
+        // If opened as a popup window, close it so the parent tab regains focus.
+        // The parent listens for localStorage storage events to detect kiteConnected=true.
+        if (window.opener && !window.opener.closed) {
+          setTimeout(() => window.close(), 1200);
+        } else {
+          setTimeout(() => navigate('/app/dashboard'), 1500);
+        }
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Unexpected error connecting to Kite.';
         setStatus('error');
@@ -75,7 +86,7 @@ export function KiteCallbackPage() {
         {status === 'success' && (
           <>
             <h2 className="section-title" style={{ color: 'var(--color-success, #4caf50)' }}>✓ Kite Connected</h2>
-            <p className="helper" style={{ marginTop: 12 }}>Your Kite account is linked. Redirecting to dashboard…</p>
+            <p className="helper" style={{ marginTop: 12 }}>Your Kite account is linked. This window will close automatically.</p>
           </>
         )}
         {status === 'error' && (

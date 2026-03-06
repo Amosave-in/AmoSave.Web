@@ -6,7 +6,7 @@ import { queryKeys } from '@/shared/lib/query-keys';
 import { AsyncState } from '@/shared/components/async-state';
 import { DataTable } from '@/shared/components/data-table';
 import { Badge } from '@/shared/components/badge';
-import { mapHttpError } from '@/services/http/error-mapper';
+import { mapHttpErrorFull } from '@/services/http/error-mapper';
 import type { Dictionary } from '@/shared/types/api';
 
 type StatusTab = 'all' | 'pending' | 'executed' | 'cancelled' | 'rejected';
@@ -48,7 +48,8 @@ export function OrdersPage() {
   });
 
   const cancelMutation = useMutation({
-    mutationFn: (orderId: string) => ordersService.cancelOrder(orderId),
+    mutationFn: ({ variety, orderId }: { variety: string; orderId: string }) =>
+      ordersService.cancelOrder(variety, orderId),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.orders }),
   });
 
@@ -134,9 +135,10 @@ export function OrdersPage() {
         const s = String(row.original.status ?? '').toUpperCase();
         if (!PENDING_STATUSES.includes(s)) return null;
         const orderId = String(row.original.orderId ?? '');
+        const variety = String(row.original.variety ?? 'regular');
         return (
           <button
-            onClick={() => cancelMutation.mutate(orderId)}
+            onClick={() => cancelMutation.mutate({ variety, orderId })}
             disabled={cancelMutation.isPending}
             style={{
               fontSize: 11,
@@ -242,7 +244,7 @@ export function OrdersPage() {
 
       <AsyncState
         isLoading={query.isLoading}
-        error={query.error ? mapHttpError(query.error) : null}
+        error={query.error ? mapHttpErrorFull(query.error) : null}
         isEmpty={all.length === 0}
         emptyText="No orders today"
       >

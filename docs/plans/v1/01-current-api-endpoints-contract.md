@@ -79,7 +79,8 @@ Total live endpoints: **8**
   - `200` -> `ObjectApiResponse`
   - `401` -> `ObjectApiResponse`
 
-### B) Health
+### B) 
+
 
 #### 5) GET `/api/v1/Health`
 - Summary: Get API health status

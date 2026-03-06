@@ -68,6 +68,7 @@ import { OptionsPcrPage } from '@/features/options/pages/options-pcr-page';
 import { RiskSettingsPage } from '@/features/risk/pages/risk-settings-page';
 import { RiskStatePage } from '@/features/risk/pages/risk-state-page';
 import { AlertsPage } from '@/features/alerts/pages/alerts-page';
+import { KiteLoginsPage } from '@/features/users/pages/kite-logins-page';
 import { AuthGuard } from '@/app/router/auth-guard';
 
 import { Navigate } from 'react-router-dom';
@@ -152,10 +153,13 @@ export const routes = [
       { path: 'risk/settings', element: <RiskSettingsPage /> },
       { path: 'risk/state', element: <RiskStatePage /> },
       { path: 'alerts', element: <AlertsPage /> },
+      { path: 'users/kite-logins', element: <KiteLoginsPage /> },
         ],
       },
     ],
   },
 ];
 
-export const router = createBrowserRouter(routes);
+export const router = createBrowserRouter(routes, {
+  basename: import.meta.env.BASE_URL,
+});

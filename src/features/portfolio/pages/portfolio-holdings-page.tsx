@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { portfolioService } from '@/services/api/portfolio.service';
 import { queryKeys } from '@/shared/lib/query-keys';
 import { AsyncState } from '@/shared/components/async-state';
-import { mapHttpError } from '@/services/http/error-mapper';
+import { mapHttpErrorFull } from '@/services/http/error-mapper';
 import type { Dictionary } from '@/shared/types/api';
 
 const INR = (n: number) =>
@@ -107,7 +107,7 @@ export function PortfolioHoldingsPage() {
   return (
     <AsyncState
       isLoading={query.isLoading}
-      error={query.error ? mapHttpError(query.error) : null}
+      error={query.error ? mapHttpErrorFull(query.error) : null}
       isEmpty={!query.data || rows.length === 0}
       emptyText="No holdings found"
     >
@@ -219,3 +219,4 @@ export function PortfolioHoldingsPage() {
     </AsyncState>
   );
 }
+

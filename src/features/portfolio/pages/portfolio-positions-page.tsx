@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { portfolioService } from '@/services/api/portfolio.service';
-import { mapHttpError } from '@/services/http/error-mapper';
+import { mapHttpErrorFull } from '@/services/http/error-mapper';
 import { AsyncState } from '@/shared/components/async-state';
 import { StatCard } from '@/shared/components/stat-card';
 import { DataTable } from '@/shared/components/data-table';
@@ -98,19 +98,7 @@ const columns: ColumnDef<Dictionary>[] = [
     id: 'close',
     header: '',
     cell: () => (
-      <button
-        style={{
-          fontSize: 11,
-          padding: '2px 10px',
-          borderRadius: 4,
-          border: '1px solid #f06161',
-          background: 'transparent',
-          color: '#f06161',
-          cursor: 'pointer',
-        }}
-      >
-        Close
-      </button>
+      <button className="btn btn-sm btn-danger">Close</button>
     ),
   },
 ];
@@ -135,7 +123,7 @@ export function PortfolioPositionsPage() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* Summary stat bar */}
-      <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+      <div className="dashboard-page__stats" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
         <StatCard
           title="Day P&L"
           value={fmt(dayPnl)}
@@ -150,48 +138,23 @@ export function PortfolioPositionsPage() {
       </div>
 
       {/* Main card */}
-      <div className="page-card" style={{ padding: 0 }}>
+      <div className="card" style={{ overflow: 'hidden' }}>
         {/* Tab bar + Refresh */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '0 16px',
-            borderBottom: '1px solid var(--border)',
-          }}
-        >
+        <div className="positions-tab-bar">
           <div style={{ display: 'flex' }}>
             {TABS.map((t) => (
               <button
                 key={t.key}
                 onClick={() => setTab(t.key)}
-                style={{
-                  padding: '12px 20px',
-                  fontSize: 13,
-                  fontWeight: 600,
-                  border: 'none',
-                  borderBottom: tab === t.key ? '2px solid var(--accent)' : '2px solid transparent',
-                  background: 'transparent',
-                  color: tab === t.key ? 'var(--accent)' : 'var(--text-muted)',
-                  cursor: 'pointer',
-                }}
+                className={`positions-tab${tab === t.key ? ' positions-tab--active' : ''}`}
               >
                 {t.label}
               </button>
             ))}
           </div>
           <button
+            className="btn btn-sm btn-ghost"
             onClick={() => queryClient.invalidateQueries({ queryKey: queryKeys.portfolioPositions })}
-            style={{
-              fontSize: 12,
-              padding: '4px 12px',
-              borderRadius: 20,
-              border: '1px solid var(--border)',
-              background: 'transparent',
-              color: 'var(--text-muted)',
-              cursor: 'pointer',
-            }}
           >
             ↻ Refresh
           </button>
@@ -199,7 +162,7 @@ export function PortfolioPositionsPage() {
 
         <AsyncState
           isLoading={query.isLoading}
-          error={query.error ? mapHttpError(query.error) : null}
+          error={query.error ? mapHttpErrorFull(query.error) : null}
           isEmpty={!query.data || all.length === 0}
           emptyText="No positions found"
         >

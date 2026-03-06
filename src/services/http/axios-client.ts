@@ -74,11 +74,16 @@ export function setStoredApiKey(value: string | null): void {
 }
 
 export function getApiBaseUrl(): string {
-  return defaultBaseUrl;
+  return getStoredApiBaseUrl() ?? defaultBaseUrl;
 }
 
 export function getApiKey(): string {
   return getStoredApiKey() ?? defaultApiKey;
+}
+
+/** Ensures a value from an API response is always a plain array. */
+export function toSafeArray<T>(value: unknown): T[] {
+  return Array.isArray(value) ? (value as T[]) : [];
 }
 
 export const apiClient = axios.create({

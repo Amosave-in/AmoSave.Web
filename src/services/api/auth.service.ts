@@ -5,6 +5,7 @@ export const AUTH_USER_NAME_STORAGE_KEY = 'amo.authUserName';
 export const AUTH_ACCESS_KEY_STORAGE_KEY = 'amo.authAccessKey';
 export const KITE_CONNECTED_STORAGE_KEY = 'amo.kiteConnected';
 export const KITE_USER_ID_STORAGE_KEY = 'amo.kiteUserId';
+export const REFRESH_TOKEN_STORAGE_KEY = 'amo.refreshToken';
 
 export type LoginRequest = {
   username: string;
@@ -13,6 +14,14 @@ export type LoginRequest = {
 
 export type CreateSessionRequest = {
   requestToken: string;
+};
+
+export type KiteConnectResponse = {
+  isKiteConnected: boolean;
+  kiteUserId:      string;
+  kiteUserName:    string;
+  email:           string;
+  expiresAt:       string; // ISO date — Kite token expires at 6 AM IST next day
 };
 
 // ── Username / Password Auth ─────────────────────────────────────────────────
@@ -43,6 +52,21 @@ export function setStoredAuthAccessKey(value: string | null): void {
   } catch { return; }
 }
 
+// ── Refresh Token ────────────────────────────────────────────────────────────
+
+export function getStoredRefreshToken(): string | null {
+  if (typeof window === 'undefined') return null;
+  try { return window.localStorage.getItem(REFRESH_TOKEN_STORAGE_KEY); } catch { return null; }
+}
+
+export function setStoredRefreshToken(value: string | null): void {
+  if (typeof window === 'undefined') return;
+  try {
+    if (!value) { window.localStorage.removeItem(REFRESH_TOKEN_STORAGE_KEY); return; }
+    window.localStorage.setItem(REFRESH_TOKEN_STORAGE_KEY, value);
+  } catch { return; }
+}
+
 // ── Kite Connect Session ─────────────────────────────────────────────────────
 
 export function getKiteConnected(): boolean {
@@ -56,6 +80,7 @@ export function setKiteConnected(value: boolean): void {
     if (!value) {
       window.localStorage.removeItem(KITE_CONNECTED_STORAGE_KEY);
       window.localStorage.removeItem(KITE_USER_ID_STORAGE_KEY);
+      window.localStorage.removeItem(REFRESH_TOKEN_STORAGE_KEY);
       return;
     }
     window.localStorage.setItem(KITE_CONNECTED_STORAGE_KEY, 'true');
@@ -89,12 +114,17 @@ export const authService = {
   },
 
   async createKiteSession(requestToken: string) {
-    const response = await apiClient.post<ApiEnvelope<Dictionary>>('/auth/session', { requestToken } as CreateSessionRequest);
+    const response = await apiClient.post<ApiEnvelope<KiteConnectResponse>>('/auth/session', { requestToken } as CreateSessionRequest);
     return response.data;
   },
 
   async destroyKiteSession() {
-    const response = await apiClient.delete<ApiEnvelope<Dictionary>>('/auth/session');
+    const response = await apiClient.post<ApiEnvelope<Dictionary>>('/auth/logout');
+    return response.data;
+  },
+
+  async refreshSession(refreshToken: string) {
+    const response = await apiClient.post<ApiEnvelope<Dictionary>>('/auth/refresh', { refreshToken });
     return response.data;
   },
 };

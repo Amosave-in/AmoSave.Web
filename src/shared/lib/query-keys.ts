@@ -21,4 +21,5 @@ export const queryKeys = {
   riskSettings: ['risk', 'settings'] as const,
   riskState: ['risk', 'state'] as const,
   alerts: ['alerts', 'list'] as const,
+  kiteCredentials: ['kite-users', 'credentials'] as const,
 };

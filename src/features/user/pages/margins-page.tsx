@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { userService } from '@/services/api/user.service';
-import { mapHttpError } from '@/services/http/error-mapper';
+import { mapHttpErrorFull } from '@/services/http/error-mapper';
 import { AsyncState } from '@/shared/components/async-state';
 
 function toRecord(value: unknown): Record<string, unknown> {
@@ -40,7 +40,7 @@ export function MarginsPage() {
           <option value="commodity">Commodity</option>
         </select>
       </section>
-      <AsyncState isLoading={query.isLoading} error={query.error ? mapHttpError(query.error) : null} isEmpty={!query.data}>
+      <AsyncState isLoading={query.isLoading} error={query.error ? mapHttpErrorFull(query.error) : null} isEmpty={!query.data}>
         <section className="page-card user-page-card">
           <h2 className="section-title">Margins Summary</h2>
           <div className="user-kv-grid">
@@ -86,3 +86,4 @@ export function MarginsPage() {
     </div>
   );
 }
+

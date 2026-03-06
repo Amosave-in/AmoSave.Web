@@ -8,30 +8,21 @@ interface DataTableProps<TData> {
 }
 
 export function DataTable<TData>({ columns, data, emptyText = 'No data' }: DataTableProps<TData>) {
+  const safeData = Array.isArray(data) ? data : [];
   const table = useReactTable<TData>({
-    data,
+    data: safeData,
     columns,
     getCoreRowModel: getCoreRowModel(),
   });
 
   return (
-    <div style={{ overflowX: 'auto' }}>
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+    <div className="table-wrap">
+      <table className="data-table">
         <thead>
           {table.getHeaderGroups().map((headerGroup) => (
             <tr key={headerGroup.id}>
               {headerGroup.headers.map((header) => (
-                <th
-                  key={header.id}
-                  style={{
-                    borderBottom: '1px solid var(--border)',
-                    padding: '8px 10px',
-                    textAlign: 'left',
-                    color: 'var(--text-muted)',
-                    fontWeight: 500,
-                    whiteSpace: 'nowrap',
-                  }}
-                >
+                <th key={header.id}>
                   {header.isPlaceholder
                     ? null
                     : flexRender(header.column.columnDef.header, header.getContext())}
@@ -45,33 +36,16 @@ export function DataTable<TData>({ columns, data, emptyText = 'No data' }: DataT
             <tr>
               <td
                 colSpan={columns.length}
-                style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '24px 10px' }}
+                style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '32px 10px' }}
               >
                 {emptyText}
               </td>
             </tr>
           ) : (
             table.getRowModel().rows.map((row) => (
-              <tr
-                key={row.id}
-                style={{ cursor: 'default' }}
-                onMouseEnter={(e) =>
-                  ((e.currentTarget as HTMLTableRowElement).style.background =
-                    'rgba(44,129,255,0.04)')
-                }
-                onMouseLeave={(e) =>
-                  ((e.currentTarget as HTMLTableRowElement).style.background = '')
-                }
-              >
+              <tr key={row.id}>
                 {row.getVisibleCells().map((cell) => (
-                  <td
-                    key={cell.id}
-                    style={{
-                      borderBottom: '1px solid rgba(46,58,71,0.5)',
-                      padding: '8px 10px',
-                      verticalAlign: 'middle',
-                    }}
-                  >
+                  <td key={cell.id}>
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </td>
                 ))}

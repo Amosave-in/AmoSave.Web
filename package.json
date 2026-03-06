@@ -8,8 +8,11 @@
   },
   "scripts": {
     "dev": "vite",
+    "dev:uat": "vite --mode uat",
     "build": "tsc --noEmit && vite build",
+    "build:uat": "tsc --noEmit && vite build --mode uat",
     "preview": "vite preview",
+    "preview:uat": "vite preview --mode uat",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "test": "vitest",

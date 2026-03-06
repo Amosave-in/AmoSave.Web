@@ -5,7 +5,7 @@ import { queryKeys } from '@/shared/lib/query-keys';
 import { AsyncState } from '@/shared/components/async-state';
 import { DataTable } from '@/shared/components/data-table';
 import { Badge } from '@/shared/components/badge';
-import { mapHttpError } from '@/services/http/error-mapper';
+import { mapHttpErrorFull } from '@/services/http/error-mapper';
 import type { Dictionary } from '@/shared/types/api';
 
 function formatRupees(value: number) {
@@ -78,7 +78,7 @@ export function TradesPage() {
         <h2 className="section-title" style={{ marginBottom: 16 }}>Trades</h2>
         <AsyncState
           isLoading={query.isLoading}
-          error={query.error ? mapHttpError(query.error) : null}
+          error={query.error ? mapHttpErrorFull(query.error) : null}
           isEmpty={!query.data?.length}
           emptyText="No trades today"
         >
@@ -88,3 +88,4 @@ export function TradesPage() {
     </div>
   );
 }
+

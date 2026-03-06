@@ -6,8 +6,8 @@ export const dashboardService = {
     const response = await apiClient.get<ApiEnvelope<Dictionary>>('/dashboard/summary');
     return response.data.data;
   },
-  async getPnlCalendar() {
-    const response = await apiClient.get<ApiEnvelope<Dictionary>>('/dashboard/pnl-calendar');
+  async getBrokers() {
+    const response = await apiClient.get<ApiEnvelope<Dictionary[]>>('/dashboard/brokers');
     return response.data.data;
   },
 };

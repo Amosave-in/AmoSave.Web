@@ -1,4 +1,4 @@
-export type MainMenuKey = 'market' | 'trade' | 'analyse' | 'user' | 'app-settings' | 'algo' | 'strategy-builder' | 'options' | 'risk';
+export type MainMenuKey = 'market' | 'trade' | 'analyse' | 'user' | 'app-settings' | 'algo' | 'strategy-builder' | 'options' | 'risk' | 'users';
 
 export type MenuTab = {
   label: string;
@@ -67,6 +67,12 @@ export const mainMenuItems: MainMenuItem[] = [
     description: 'Risk settings, daily state, price alerts',
     defaultPath: '/app/risk/settings',
   },
+  {
+    key: 'users',
+    title: 'Users',
+    description: 'Manage Kite user logins and credentials',
+    defaultPath: '/app/users/kite-logins',
+  },
 ];
 
 export const subMenuTabsByMainMenu: Record<MainMenuKey, MenuTab[]> = {
@@ -115,9 +121,13 @@ export const subMenuTabsByMainMenu: Record<MainMenuKey, MenuTab[]> = {
     { label: 'Risk State', path: '/app/risk/state' },
     { label: 'Alerts', path: '/app/alerts' },
   ],
+  users: [
+    { label: 'Add Login with Kite', path: '/app/users/kite-logins' },
+  ],
 };
 
 export function getActiveMainMenu(pathname: string): MainMenuKey {
+  if (pathname.startsWith('/app/users')) return 'users';
   if (pathname.startsWith('/app/options')) return 'options';
   if (pathname.startsWith('/app/risk') || pathname.startsWith('/app/alerts')) return 'risk';
 

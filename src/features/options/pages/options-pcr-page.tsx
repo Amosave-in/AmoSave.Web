@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { optionsService } from '@/services/api/options.service';
+import { marketService } from '@/services/api/market.service';
 import { mapHttpError } from '@/services/http/error-mapper';
+import { extractOptionUnderlyings } from '@/shared/lib/options-underlyings';
 import type { Dictionary } from '@/shared/types/api';
-
-const UNDERLYINGS = ['BANKNIFTY', 'NIFTY', 'FINNIFTY', 'MIDCPNIFTY', 'SENSEX', 'BANKEX'];
 
 function fmtOI(val: number): string {
   if (val >= 1_00_00_000) return (val / 1_00_00_000).toFixed(2) + 'Cr';
@@ -13,12 +13,35 @@ function fmtOI(val: number): string {
 }
 
 export function OptionsPcrPage() {
-  const [underlying, setUnderlying] = useState('BANKNIFTY');
+  const instrumentsQuery = useQuery({
+    queryKey: ['market', 'instruments', 'option-underlyings'],
+    queryFn: marketService.getInstruments,
+  });
+
+  const underlyings = useMemo(
+    () => extractOptionUnderlyings((instrumentsQuery.data ?? []) as Dictionary[]),
+    [instrumentsQuery.data],
+  );
+
+  const [underlying, setUnderlying] = useState('');
   const [selectedExpiry, setSelectedExpiry] = useState('');
+
+  useEffect(() => {
+    if (!underlyings.length) {
+      return;
+    }
+
+    if (!underlyings.includes(underlying)) {
+      setUnderlying(underlyings[0]);
+      setSelectedExpiry('');
+      mutation.reset();
+    }
+  }, [underlyings, underlying]);
 
   const expiriesQuery = useQuery({
     queryKey: ['options', 'expiries', underlying],
     queryFn: () => optionsService.getExpiries(underlying),
+    enabled: !!underlying,
   });
 
   const mutation = useMutation({
@@ -71,7 +94,7 @@ export function OptionsPcrPage() {
         <h2 className="section-title" style={{ margin: 0 }}>Put-Call Ratio</h2>
 
         <select className="select" value={underlying} onChange={(e) => handleUnderlyingChange(e.target.value)}>
-          {UNDERLYINGS.map((u) => <option key={u} value={u}>{u}</option>)}
+          {underlyings.map((u) => <option key={u} value={u}>{u}</option>)}
         </select>
 
         <select className="select" value={selectedExpiry} onChange={(e) => setSelectedExpiry(e.target.value)} disabled={expiriesQuery.isLoading}>
@@ -85,6 +108,10 @@ export function OptionsPcrPage() {
 
         {mutation.isError && (
           <span className="helper" style={{ color: 'var(--danger)' }}>{mapHttpError(mutation.error)}</span>
+        )}
+
+        {!underlyings.length && !instrumentsQuery.isLoading && !mutation.isError && (
+          <span className="helper" style={{ color: 'var(--danger)' }}>No option underlyings available from API.</span>
         )}
       </div>
 

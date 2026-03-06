@@ -1,10 +1,10 @@
-import { apiClient } from '@/services/http/axios-client';
+import { apiClient, toSafeArray } from '@/services/http/axios-client';
 import { ApiEnvelope, Dictionary } from '@/shared/types/api';
 
 export const gttService = {
   async getTriggers() {
     const response = await apiClient.get<ApiEnvelope<Dictionary[]>>('/gtt');
-    return response.data.data;
+    return toSafeArray<Dictionary>(response.data.data);
   },
   async getTrigger(id: string) {
     const response = await apiClient.get<ApiEnvelope<Dictionary>>(`/gtt/${id}`);
